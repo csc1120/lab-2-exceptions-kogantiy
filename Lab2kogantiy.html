@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>kogantiy</title>
+  </head>
+  <body>
+    <xmp
+>
+# Lab 2 - Exceptions
+
+>> | Earned | Possible | Criteria                                         |
+>> | ------ | -------- | ------------------------------------------------ |
+>> |   15   |    15    | Intermediate Commits                             |
+>> |   60   |    60    | Technical quality (see point deductions in code) |
+>> |   15   |    15    | Coding standard compliance and program clarity   |
+>> |   10   |    10    | Following submission instructions                |
+>
+> # Feedback
+> * Nice work!
+
+
+# Die.java
+
+```
+/*
+ * Course: CSC1020
+ * Lab 2 - Exceptions
+ * Die class
+ * Name: Yuktha
+ * Last Updated: 9/18/2024
+ */
+package kogantiy;
+
+import java.util.Random;
+
+public class Die {
+    private int numSides;
+    private int currentValue;
+    private Random random;
+
+```
+> #### -2 Magic number
+> Use MIN_SIDES and MAX_SIDES rather than 2 and 100
+
+```
+    public Die(int numSides) {
+        if (numSides < 2 || numSides > 100) {
+            throw new IllegalArgumentException("Illegal number of sides: " + numSides);
+        }
+        this.numSides = numSides;
+        this.currentValue = 0; // Die is not rolled yet.
+        this.random = new Random();
+    }
+
+    public int getCurrentValue() {
+        if (currentValue == 0) {
+            throw new DieNotRolledException("Die has not been rolled yet");
+        }
+        return currentValue;
+    }
+
+    public void roll() {
+        currentValue = random.nextInt(numSides) + 1;
+    }
+}
+```
+
+# Driver.java
+
+```
+/*
+ * Course: CSC1020
+ * Lab 2 - Exceptions
+ * Main Driver class
+ * Name: Yuktha
+ * Last Updated: 9/18/2024
+ */
+package kogantiy;
+
+import java.util.Scanner;
+
+public class Driver {
+    private static final int MIN_DICE = 2;
+    private static final int MAX_DICE = 10;
+    private static final int MIN_SIDES = 2;
+    private static final int MAX_SIDES = 100;
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        boolean successful = false;
+        while (!successful) {
+            try {
+                int[] config = getInput(scanner);
+                Die[] dice = createDice(config[0], config[1]);
+                int[] results = rollDice(dice, config[2]);
+                int maxIndex = findMax(results);
+                report(results);
+                successful = true; // Exit loop if everything was successful
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                System.out.println("Please try again.");
+            }
+        }
+    }
+
+```
+> #### Handling negative or zero rolls in getInput()
+> There is no validation to ensure that the number of rolls (numRolls) is greater than zero. 
+If the user inputs zero or a negative number, the rollDice() method will break or run inappropriately.
+> e.g.: 
+```java
+if (numRolls <= 0) {
+    throw new IllegalArgumentException("Number of rolls must be greater than 0.");
+}
+```
+
+```
+    private static int[] getInput(Scanner scanner) {
+        System.out.println("Enter configuration:");
+        String[] parts = scanner.nextLine().trim().split("\\s+");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Invalid input: Expected 3 values but only received " + parts.length);
+        }
+        int numDice = Integer.parseInt(parts[0]);
+        int numSides = Integer.parseInt(parts[1]);
+        int numRolls = Integer.parseInt(parts[2]);
+        if (numDice < MIN_DICE || numDice > MAX_DICE || numSides < MIN_SIDES || numSides > MAX_SIDES) {
+            throw new IllegalArgumentException("Bad die creation: Illegal number of sides or number of dice");
+        }
+        return new int[] { numDice, numSides, numRolls };
+    }
+
+    private static Die[] createDice(int numDice, int numSides) {
+        Die[] dice = new Die[numDice];
+        for (int i = 0; i < numDice; i++) {
+            dice[i] = new Die(numSides);
+        }
+        return dice;
+    }
+```
+> #### Inefficient Array Size in rollDice() Method 
+>  Adjust the array size to match the actual possible range of sums based on the number of dice and sides.
+> ```java
+int[] results = new int[numDice * numSides - numDice + 1];
+```
+
+```
+    private static int[] rollDice(Die[] dice, int numRolls) {
+        int[] results = new int[MAX_DICE * MAX_SIDES + 1];
+        for (int roll = 0; roll < numRolls; roll++) {
+            int sum = 0;
+            for (Die die : dice) {
+                die.roll();
+                sum += die.getCurrentValue();
+            }
+            results[sum]++;
+        }
+        return results;
+    }
+
+    private static int findMax(int[] results) {
+        int maxCount = 0;
+        for (int count : results) {
+            if (count > maxCount) {
+                maxCount = count;
+            }
+        }
+        return maxCount;
+    }
+
+    private static void report(int[] results) {
+        for (int i = 0; i < results.length; i++) {
+            if (results[i] > 0) {
+                System.out.print(i + " : ");
+                for (int j = 0; j < results[i]; j++) {
+                    System.out.print("*");
+                }
+                System.out.println();
+            }
+        }
+    }
+}
+```
+
+</xmp
+    >
+    <script
+      type="text/javascript"
+      src="https://csse.msoe.us/gradedown.js"
+    ></script>
+  </body>
+</html>
